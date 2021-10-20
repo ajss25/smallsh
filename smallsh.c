@@ -8,6 +8,8 @@
 int main(void) {
 	char command[MAX_COMMAND_LENGTH];
 	char* args[MAX_COMMAND_ARGS];
+	int argsCount = 0;
+	int background = 0;
 
 	// prompt command line input, flush output buffer, get command line input
 	printf(": ");
@@ -21,6 +23,12 @@ int main(void) {
 	while (token) {
 		args[i] = token;
 		token = strtok(NULL, " \n");
-		i++; 
+		i++;
+		argsCount++;
+	}
+
+	// check if command needs to be executed in the background
+	if (strcmp(args[argsCount - 1], "&") == 0) {
+		background = 1;
 	}
 }
