@@ -7,7 +7,8 @@
 #define MAX_COMMAND_LENGTH 2048
 #define MAX_COMMAND_ARGS 512
 
-int main(void) {
+// function to get and parse command line input from user
+int getAndParseCommand(void) {
 	char command[MAX_COMMAND_LENGTH];
 	char* args[MAX_COMMAND_ARGS];
 	int argsCount = 0;
@@ -52,4 +53,20 @@ int main(void) {
 	if (strcmp(args[argsCount - 1], "&") == 0) {
 		background = 1;
 	}
+
+	// print function for debugging
+	int x;
+	for (x = 0; x < argsCount; x++) {
+		printf("%s\n", args[x]);
+	}
+
+	return 0;
+}
+
+int main(void) {
+	// prompt user for command line input until exited
+	while (1) {
+		getAndParseCommand();
+	}
+	return 0;
 }
