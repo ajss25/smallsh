@@ -20,8 +20,11 @@ int getAndParseCommand(void) {
 	fflush(stdout);
 	fgets(command, MAX_COMMAND_LENGTH, stdin);
 
+	// rid of the newline characater from the command line input
+	strtok(command, "\n");
+
 	int i = 0;
-	char *token = strtok(command, " \n");
+	char *token = strtok(command, " ");
 
 	// parse command line input into separate arguments
 	while (token) {
@@ -44,7 +47,7 @@ int getAndParseCommand(void) {
 		} else {
 			args[i] = token;
 		}
-		token = strtok(NULL, " \n");
+		token = strtok(NULL, " ");
 		i++;
 		argsCount++;
 	}
@@ -57,6 +60,10 @@ int getAndParseCommand(void) {
 	// print function for debugging
 	int x;
 	for (x = 0; x < argsCount; x++) {
+		if (args[x][0] == '#' || args[x][0] == '\n') {
+			printf("Command line input is a comment or a blank input\n");
+			break;
+		}
 		printf("%s\n", args[x]);
 	}
 
