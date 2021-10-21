@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -11,6 +12,35 @@
 // initialize global variables
 int status = 0;
 int background = 0;
+
+// function to execute commands other than `exit`, `cd`, and `status`
+int executeOtherCommands(char** args, int argsCount) {
+	// set last argument to NULL for execvp()
+	args[argsCount] = NULL;
+
+	// initialize with bogus values
+	pid_t spawnPid = -5; 
+	int childExitMethod = -5;
+
+	// fork a child process
+	spawnPid = fork();
+
+	switch (spawnPid) {
+		// error
+		case -1:
+			perror("Error\n");
+			exit(1);
+			break;
+
+		// child process
+		case 0:
+			execvp(args[0], args);
+
+		// parent process
+		default:
+			waitpid(spawnPid, &childExitMethod, 0);
+	}
+}
 
 // function to kill process and jobs, and exit the shell
 void exitShell(void) {
@@ -122,6 +152,10 @@ int getAndParseCommand(void) {
 	// if `status` command was given, print exit status or terminating signal
 	} else if (strcmp(args[0], "status") == 0) {
 		printStatus();
+
+	// if we need to execute any other commands
+	} else {
+		executeOtherCommands(args, argsCount);
 	}
 
 	// print functions for debugging
