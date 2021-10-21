@@ -14,6 +14,29 @@ void exitShell(void) {
 	exit(0);
 }
 
+// function to change to given directory
+// change to home directory if not given the destination
+void changeDirectory(char *directory) {
+	int dirChanged;
+
+	if (strcmp(directory, "HOME") == 0) {
+		dirChanged = chdir(getenv("HOME"));
+	} else {
+		dirChanged = chdir(directory);
+	}
+	
+	// error/testing message
+	// if (dirChanged != 0) {
+	// 	printf("cd was unsuccessful\n");
+	// } else {
+	// 	char cwd[2048];
+	// 	if (getcwd(cwd, sizeof(cwd)) != NULL) {
+	// 		printf("CWD: %s\n", cwd);
+	// 	}
+	// }
+	// fflush(stdout);
+}
+
 // function to get and parse command line input from user
 int getAndParseCommand(void) {
 	char command[MAX_COMMAND_LENGTH];
@@ -64,12 +87,23 @@ int getAndParseCommand(void) {
 		background = 1;
 	}
 
-	// return to re-prompt for another command if input is a comment or a blank line
+	// re-prompt for another command if input is a comment or a blank line
 	if (args[0][0] == '#' || args[0][0] == '\n') {
 		return 0;
-	// if exit command was given, kill processes/jobs and exit the shell
+
+	// if `exit` command was given, kill processes/jobs and exit the shell
 	} else if (strcmp(args[0], "exit") == 0) {
 		exitShell();
+
+	// if `cd` command was given, change the working directory
+	// if the command was not given an argument, change to home directory
+	} else if (strcmp(args[0], "cd") == 0) {
+		if (argsCount == 1) {
+			char dir[] = "HOME";
+			changeDirectory(dir);
+		} else {
+			changeDirectory(args[1]);
+		}
 	}
 
 	// print functions for debugging
