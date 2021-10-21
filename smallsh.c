@@ -8,6 +8,10 @@
 #define MAX_COMMAND_LENGTH 2048
 #define MAX_COMMAND_ARGS 512
 
+// initialize global variables
+int status = 0;
+int background = 0;
+
 // function to kill process and jobs, and exit the shell
 void exitShell(void) {
 	// need to further implement killing of all processes/jobs
@@ -37,12 +41,22 @@ void changeDirectory(char *directory) {
 	// fflush(stdout);
 }
 
+// function to print exit status or terminating signal of
+// last foreground process ran by the shell - placeholder
+void printStatus(void) {
+	if (background == 1) {
+		printf("terminated by signal #\n");
+	} else {
+		printf("exit value #\n");
+	}
+	fflush(stdout);
+}
+
 // function to get and parse command line input from user
 int getAndParseCommand(void) {
 	char command[MAX_COMMAND_LENGTH];
 	char* args[MAX_COMMAND_ARGS];
 	int argsCount = 0;
-	int background = 0;
 	pid_t pid = getpid();
 
 	// prompt command line input, flush output buffer, get command line input
@@ -104,6 +118,10 @@ int getAndParseCommand(void) {
 		} else {
 			changeDirectory(args[1]);
 		}
+
+	// if `status` command was given, print exit status or terminating signal
+	} else if (strcmp(args[0], "status") == 0) {
+		printStatus();
 	}
 
 	// print functions for debugging
