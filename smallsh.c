@@ -57,16 +57,18 @@ int getAndParseCommand(void) {
 		background = 1;
 	}
 
-	// print function for debugging
-	int x;
-	for (x = 0; x < argsCount; x++) {
-		if (args[x][0] == '#' || args[x][0] == '\n') {
-			printf("Command line input is a comment or a blank input\n");
-			break;
-		}
-		printf("%s\n", args[x]);
+	// return to re-prompt for another command if input is a comment or a blank line
+	if (args[0][0] == '#' || args[0][0] == '\n') {
+		return 0;
 	}
 
+	// print functions for debugging
+	// int x;
+	// for (x = 0; x < argsCount; x++) {
+	// 	printf("%s\n", args[x]);
+	// }
+
+	// printf("%d\n", background);
 	return 0;
 }
 
