@@ -2,10 +2,17 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 // shell supports command line inputs of up to 2048 characters and 512 arguments
 #define MAX_COMMAND_LENGTH 2048
 #define MAX_COMMAND_ARGS 512
+
+// function to kill process and jobs, and exit the shell
+void exitShell(void) {
+	// need to further implement killing of all processes/jobs
+	exit(0);
+}
 
 // function to get and parse command line input from user
 int getAndParseCommand(void) {
@@ -60,6 +67,9 @@ int getAndParseCommand(void) {
 	// return to re-prompt for another command if input is a comment or a blank line
 	if (args[0][0] == '#' || args[0][0] == '\n') {
 		return 0;
+	// if exit command was given, kill processes/jobs and exit the shell
+	} else if (strcmp(args[0], "exit") == 0) {
+		exitShell();
 	}
 
 	// print functions for debugging
