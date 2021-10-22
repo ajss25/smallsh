@@ -14,7 +14,7 @@ int status = 0;
 int background = 0;
 
 // function to execute commands other than `exit`, `cd`, and `status`
-int executeOtherCommands(char** args, int argsCount) {
+void executeOtherCommands(char** args, int argsCount) {
 	// if the command is supposed to run on the foreground
 	if (background == 0) {
 		// set last argument to NULL for execvp()
@@ -58,6 +58,48 @@ int executeOtherCommands(char** args, int argsCount) {
 				}
 				fflush(stdout);
 		}
+	// if the command is supposed to run on the background
+	} else {
+		// replace "&" to set last argument to NULL for execvp()
+		args[argsCount - 1] = NULL;
+
+		// initialize with bogus values
+		pid_t spawnPid = -5;
+		int childExitMethod = -5;
+
+		// fork a child process
+		spawnPid = fork();
+
+		switch (spawnPid) {
+			// error
+			case -1:
+				perror("Error\n");
+				exit(1);
+				break;
+
+			// child process
+			case 0:
+				execvp(args[0], args);
+				// return error here
+				perror("execvp");
+				// set value retrieved by built-in `status` command to 1
+				status = 1;
+				break;
+
+			default:
+				waitpid(spawnPid, &childExitMethod, WNOHANG);
+				printf("background pid is %d\n", spawnPid);
+				background = 0;
+				fflush(stdout);
+				// set status accordingly
+				if (WIFEXITED(childExitMethod)) {
+					status = WEXITSTATUS(childExitMethod);
+				} else {
+					status = WTERMSIG(childExitMethod);
+				}
+				fflush(stdout);
+		}
+
 	}
 }
 
