@@ -165,7 +165,7 @@ int getAndParseCommand(void) {
 	// execute this command in foreground only
 	} else if (strcmp(args[0], "cd") == 0) {
 		background = 0;
-		if (argsCount == 1) {
+		if (argsCount == 1 || strcmp(args[1], "&") == 0) {
 			char dir[] = "HOME";
 			changeDirectory(dir);
 		} else {
