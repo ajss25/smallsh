@@ -15,46 +15,49 @@ int background = 0;
 
 // function to execute commands other than `exit`, `cd`, and `status`
 int executeOtherCommands(char** args, int argsCount) {
-	// set last argument to NULL for execvp()
-	args[argsCount] = NULL;
+	// if the command is supposed to run on the foreground
+	if (background == 0) {
+		// set last argument to NULL for execvp()
+		args[argsCount] = NULL;
 
-	// initialize with bogus values
-	pid_t spawnPid = -5; 
-	int childExitMethod = -5;
+		// initialize with bogus values
+		pid_t spawnPid = -5; 
+		int childExitMethod = -5;
 
-	// fork a child process
-	spawnPid = fork();
+		// fork a child process
+		spawnPid = fork();
 
-	switch (spawnPid) {
-		// error
-		case -1:
-			perror("Error\n");
-			exit(1);
-			break;
+		switch (spawnPid) {
+			// error
+			case -1:
+				perror("Error\n");
+				exit(1);
+				break;
 
-		// child process
-		case 0:
-			execvp(args[0], args);
-			// return error here
-			perror("execvp");
-			// set value retrieved by built-in `status` command to 1
-			status = 1;
-			// printf("%d\n", status);
-			// fflush(stdout);
-			break;
-
-		// parent process
-		default:
-			waitpid(spawnPid, &childExitMethod, 0);
-			// set status accordingly
-			if (WIFEXITED(childExitMethod)) {
-				status = WEXITSTATUS(childExitMethod);
+			// child process
+			case 0:
+				execvp(args[0], args);
+				// return error here
+				perror("execvp");
+				// set value retrieved by built-in `status` command to 1
+				status = 1;
 				// printf("%d\n", status);
-			} else {
-				status = WTERMSIG(childExitMethod);
-				// printf("%d\n", status);
-			}
-			fflush(stdout);
+				// fflush(stdout);
+				break;
+
+			// parent process
+			default:
+				waitpid(spawnPid, &childExitMethod, 0);
+				// set status accordingly
+				if (WIFEXITED(childExitMethod)) {
+					status = WEXITSTATUS(childExitMethod);
+					// printf("%d\n", status);
+				} else {
+					status = WTERMSIG(childExitMethod);
+					// printf("%d\n", status);
+				}
+				fflush(stdout);
+		}
 	}
 }
 
@@ -87,8 +90,8 @@ void changeDirectory(char *directory) {
 	// fflush(stdout);
 }
 
-// function to print exit status or terminating signal of
-// last foreground process ran by the shell - placeholder
+// function to print exit status or terminating signal
+// of the last foreground process ran by the shell - placeholder
 void printStatus(void) {
 	if (background == 1) {
 		printf("terminated by signal #\n");
