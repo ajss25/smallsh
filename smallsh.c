@@ -152,12 +152,16 @@ int getAndParseCommand(void) {
 		return 0;
 
 	// if `exit` command was given, kill processes/jobs and exit the shell
+	// execute this command in foreground only
 	} else if (strcmp(args[0], "exit") == 0) {
+		background = 0;
 		exitShell();
 
 	// if `cd` command was given, change the working directory
 	// if the command was not given an argument, change to home directory
+	// execute this command in foreground only
 	} else if (strcmp(args[0], "cd") == 0) {
+		background = 0;
 		if (argsCount == 1) {
 			char dir[] = "HOME";
 			changeDirectory(dir);
@@ -166,7 +170,9 @@ int getAndParseCommand(void) {
 		}
 
 	// if `status` command was given, print exit status or terminating signal
+	// execute this command in foreground only
 	} else if (strcmp(args[0], "status") == 0) {
+		background = 0;
 		printStatus();
 
 	// if we need to execute any other commands
