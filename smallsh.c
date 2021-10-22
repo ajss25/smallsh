@@ -12,6 +12,34 @@
 // initialize global variables
 int status = 0;
 int background = 0;
+int childProcessCount = 0;
+int childProcessPids[80];
+
+// declare implemented functions at the top
+void printStatus();
+
+// function to check status of child processes
+void checkChildProcesses(void) {
+	int childExitMethod = -5;
+	int exitStatus;
+	int i;
+	
+	// loop through child process pids to check if finished running
+	for (i = 0; i < childProcessCount; i++) {
+		if (waitpid(childProcessPids[i], &childExitMethod, WNOHANG)) {
+				// if finished, set status accordingly
+				if (WIFEXITED(childExitMethod)) {
+					exitStatus = WEXITSTATUS(childExitMethod);
+				} else {
+					exitStatus = WTERMSIG(childExitMethod);
+				// print results
+				printf("background pid %d is done: ", childProcessPids[i]);
+				printStatus(exitStatus);
+				fflush(stdout);
+			}
+		}
+	}
+}
 
 // function to execute commands other than `exit`, `cd`, and `status`
 void executeOtherCommands(char** args, int argsCount) {
@@ -50,10 +78,10 @@ void executeOtherCommands(char** args, int argsCount) {
 				waitpid(spawnPid, &childExitMethod, 0);
 				// set status accordingly
 				if (WIFEXITED(childExitMethod)) {
-					status = WEXITSTATUS(childExitMethod);
+					int exitStatus = WEXITSTATUS(childExitMethod);
 					// printf("%d\n", status);
 				} else {
-					status = WTERMSIG(childExitMethod);
+					int exitStatus = WTERMSIG(childExitMethod);
 					// printf("%d\n", status);
 				}
 				fflush(stdout);
@@ -87,19 +115,20 @@ void executeOtherCommands(char** args, int argsCount) {
 				break;
 
 			default:
+				// check status of background child processes
+				checkChildProcesses();
+
 				waitpid(spawnPid, &childExitMethod, WNOHANG);
 				printf("background pid is %d\n", spawnPid);
-				background = 0;
 				fflush(stdout);
-				// set status accordingly
-				if (WIFEXITED(childExitMethod)) {
-					status = WEXITSTATUS(childExitMethod);
-				} else {
-					status = WTERMSIG(childExitMethod);
-				}
-				fflush(stdout);
-		}
 
+				background = 0;
+				childProcessPids[childProcessCount] = spawnPid;
+				childProcessCount++;
+
+				// check status of background child processes
+				checkChildProcesses();
+		}
 	}
 }
 
@@ -134,11 +163,11 @@ void changeDirectory(char *directory) {
 
 // function to print exit status or terminating signal
 // of the last foreground process ran by the shell - placeholder
-void printStatus(void) {
+void printStatus(int status) {
 	if (background == 1) {
-		printf("terminated by signal #\n");
+		printf("terminated by signal %d\n", status);
 	} else {
-		printf("exit value #\n");
+		printf("exit value %d\n", status);
 	}
 	fflush(stdout);
 }
@@ -218,7 +247,7 @@ int getAndParseCommand(void) {
 	// execute this command in foreground only
 	} else if (strcmp(args[0], "status") == 0) {
 		background = 0;
-		printStatus();
+		printStatus(status);
 
 	// if we need to execute any other commands
 	} else {
