@@ -35,17 +35,33 @@ int executeOtherCommands(char** args, int argsCount) {
 		// child process
 		case 0:
 			execvp(args[0], args);
+			// return error here
+			perror("execvp");
+			// set value retrieved by built-in `status` command to 1
+			status = 1;
+			// printf("%d\n", status);
+			// fflush(stdout);
+			break;
 
 		// parent process
 		default:
 			waitpid(spawnPid, &childExitMethod, 0);
+			// set status accordingly
+			if (WIFEXITED(childExitMethod)) {
+				status = WEXITSTATUS(childExitMethod);
+				// printf("%d\n", status);
+			} else {
+				status = WTERMSIG(childExitMethod);
+				// printf("%d\n", status);
+			}
+			fflush(stdout);
 	}
 }
 
 // function to kill process and jobs, and exit the shell
 void exitShell(void) {
 	// need to further implement killing of all processes/jobs
-	exit(0);
+	exit(status);
 }
 
 // function to change to given directory
