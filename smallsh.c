@@ -100,7 +100,7 @@ void executeOtherCommands(char** args, int argsCount) {
 			// error
 			case -1:
 				perror("Error\n");
-				status = 1;
+				exit(1);
 				break;
 
 			// child process
@@ -108,7 +108,7 @@ void executeOtherCommands(char** args, int argsCount) {
 				execvp(args[0], args);
 				// return error and set value retrieved by built-in `status` command to 1
 				perror("execvp");
-				status = 1;
+				exit(1);
 				break;
 
 			default:
@@ -157,7 +157,7 @@ void changeDirectory(char *directory) {
 }
 
 // function to print exit status or terminating signal
-// of the last foreground process ran by the shell - placeholder
+// of the last foreground process ran by the shell
 void printStatus(int status) {
 	if (background == 1) {
 		printf("terminated by signal %d\n", status);
