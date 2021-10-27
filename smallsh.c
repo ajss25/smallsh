@@ -26,7 +26,7 @@ void checkChildProcesses(void) {
 	
 	// loop through child process pids to check if finished running
 	for (i = 0; i < childProcessCount; i++) {
-		if (waitpid(childProcessPids[i], &childExitMethod, WNOHANG)) {
+		if (childProcessPids[i] != -1 && waitpid(childProcessPids[i], &childExitMethod, WNOHANG)) {
 				// if finished, set status accordingly
 				if (WIFEXITED(childExitMethod)) {
 					exitStatus = WEXITSTATUS(childExitMethod);
@@ -34,6 +34,7 @@ void checkChildProcesses(void) {
 					exitStatus = WTERMSIG(childExitMethod);
 				// print results
 				printf("background pid %d is done: ", childProcessPids[i]);
+				childProcessPids[i] = -1;
 				printStatus(exitStatus);
 				fflush(stdout);
 			}
