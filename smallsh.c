@@ -128,8 +128,12 @@ void executeOtherCommands(char** args, int argsCount) {
 }
 
 // function to kill process and jobs, and exit the shell
+// reference: https://www.ibm.com/docs/en/zos/2.4.0?topic=functions-kill-send-signal-process
 void exitShell(void) {
-	// need to further implement killing of all processes/jobs
+	int i;
+	for (i = 0; i < childProcessCount; i++) {
+		kill(childProcessPids[i], SIGTERM);
+	}
 	exit(0);
 }
 
