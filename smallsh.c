@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 // shell supports command line inputs of up to 2048 characters and 512 arguments
 #define MAX_COMMAND_LENGTH 2048
@@ -46,9 +47,81 @@ void checkChildProcesses(void) {
 void executeOtherCommands(char** args, int argsCount) {
 	// if the command is supposed to run on the foreground
 	if (background == 0) {
-		// set last argument to NULL for execvp()
-		args[argsCount] = NULL;
 
+		// check for I/O redirection
+		// reference: https://stackoverflow.com/questions/9084099/re-opening-stdout-and-stdin-file-descriptors-after-closing-them
+		int saveStdin = dup(0);
+		int saveStdout = dup(1);
+
+		// iterate over command to check for redirection and set file descriptors
+		int sourceFD = -1;
+		int targetFD = -1;
+		int redirection = 0;
+
+		int i;
+		for (i = 0; i < argsCount; i++) {
+			if (strcmp(args[i], "<") == 0) {
+				redirection = 1;
+				sourceFD = open(args[i+1], O_RDONLY);
+				if (sourceFD == -1) {
+					perror("source open()");
+					status = 1;
+				}
+			
+			} else if (strcmp(args[i], ">") == 0) {
+				redirection = 1;
+				targetFD = open(args[i+1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+				if (targetFD == -1) {
+					perror("target open()");
+					status = 1;
+				}
+			}
+		}
+
+		if (redirection == 1) {
+			if (sourceFD != -1 && targetFD != -1) {
+				close(0);
+				close(1);
+			} else if (sourceFD != -1) {
+				close(0);
+			} else {
+				close(1);
+			}
+			
+			// if source file descriptor was found, dup2
+			if (sourceFD != -1) {
+				int sourceResult = dup2(sourceFD, 0);
+				if (sourceResult == -1) {
+					perror("source dup2()");
+					status = 2;
+				}
+			}
+			// if target file descriptor was found, dup2
+			if (targetFD != -1) {
+				int targetResult = dup2(targetFD, 1);
+				if (targetResult == -1) {
+					perror("target dup2()");
+					status = 2;
+				}
+			}
+
+			// after using dup2() to set up redirection, 
+			// nullify redirection symbols and the destination/source from the command 
+			// to pass just the command into exec()
+			int j;
+			for (j = 1; j < argsCount; j++) {
+				args[j] = NULL;
+			}
+
+			close(sourceFD);
+			close(targetFD);
+		} 
+
+		else {
+			// set last argument to NULL for execvp()
+			args[argsCount] = NULL;
+		}
+		
 		// initialize with bogus values
 		pid_t spawnPid = -5; 
 		int childExitMethod = -5;
@@ -84,6 +157,15 @@ void executeOtherCommands(char** args, int argsCount) {
 				}
 				fflush(stdout);
 		}
+
+		if (redirection == 1) {
+			dup2(saveStdin, 0);
+			dup2(saveStdout, 1);
+			close(saveStdin);
+			close(saveStdout);
+		}
+		
+
 	// if the command is supposed to run on the background
 	} else {
 		// replace "&" to set last argument to NULL for execvp()
