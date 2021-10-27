@@ -59,7 +59,8 @@ void executeOtherCommands(char** args, int argsCount) {
 			// error
 			case -1:
 				perror("Error\n");
-				exit(1);
+				// exit(1);
+				status = 1;
 				break;
 
 			// child process
@@ -115,9 +116,6 @@ void executeOtherCommands(char** args, int argsCount) {
 				break;
 
 			default:
-				// check status of background child processes
-				checkChildProcesses();
-
 				waitpid(spawnPid, &childExitMethod, WNOHANG);
 				printf("background pid is %d\n", spawnPid);
 				fflush(stdout);
@@ -125,9 +123,6 @@ void executeOtherCommands(char** args, int argsCount) {
 				background = 0;
 				childProcessPids[childProcessCount] = spawnPid;
 				childProcessCount++;
-
-				// check status of background child processes
-				checkChildProcesses();
 		}
 	}
 }
@@ -135,7 +130,7 @@ void executeOtherCommands(char** args, int argsCount) {
 // function to kill process and jobs, and exit the shell
 void exitShell(void) {
 	// need to further implement killing of all processes/jobs
-	exit(status);
+	exit(0);
 }
 
 // function to change to given directory
@@ -267,6 +262,8 @@ int getAndParseCommand(void) {
 int main(void) {
 	// prompt user for command line input until exited
 	while (1) {
+		// check status of background child processes
+		checkChildProcesses();
 		getAndParseCommand();
 	}
 	return 0;
