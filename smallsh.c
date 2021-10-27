@@ -59,19 +59,15 @@ void executeOtherCommands(char** args, int argsCount) {
 			// error
 			case -1:
 				perror("Error\n");
-				// exit(1);
 				status = 1;
 				break;
 
 			// child process
 			case 0:
 				execvp(args[0], args);
-				// return error here
+				// return error and set value retrieved by built-in `status` command to 1
 				perror("execvp");
-				// set value retrieved by built-in `status` command to 1
 				status = 1;
-				// printf("%d\n", status);
-				// fflush(stdout);
 				break;
 
 			// parent process
@@ -103,15 +99,14 @@ void executeOtherCommands(char** args, int argsCount) {
 			// error
 			case -1:
 				perror("Error\n");
-				exit(1);
+				status = 1;
 				break;
 
 			// child process
 			case 0:
 				execvp(args[0], args);
-				// return error here
+				// return error and set value retrieved by built-in `status` command to 1
 				perror("execvp");
-				// set value retrieved by built-in `status` command to 1
 				status = 1;
 				break;
 
