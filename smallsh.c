@@ -149,12 +149,9 @@ void executeFgCommands(char**args, int argsCount) {
 			// set status accordingly
 			if (WIFEXITED(childExitMethod)) {
 				int exitStatus = WEXITSTATUS(childExitMethod);
-				// printf("%d\n", status);
 			} else {
 				int exitStatus = WTERMSIG(childExitMethod);
-				// printf("%d\n", status);
 			}
-			fflush(stdout);
 	}
 
 	if (redirection == 1) {
@@ -242,9 +239,6 @@ void executeBgCommands(char** args, int argsCount) {
 
 	// if no redirection, set stdin/stdout to /dev/null
 	else {
-		close(0);
-		close(1);
-
 		int sourceResult = open("/dev/null", O_RDONLY);
 		if (sourceResult == -1) {
 			perror("source dup2()");
@@ -295,6 +289,8 @@ void executeBgCommands(char** args, int argsCount) {
 			childProcessPids[childProcessCount] = spawnPid;
 			childProcessCount++;
 	}
+	close(0);
+	close(1);
 	dup2(saveStdin, 0);
 	dup2(saveStdout, 1);
 	close(saveStdin);
