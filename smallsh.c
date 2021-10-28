@@ -147,11 +147,13 @@ void executeFgCommands(char**args, int argsCount) {
 		default:
 			waitpid(spawnPid, &childExitMethod, 0);
 			// set status accordingly
+			int exitStatus;
 			if (WIFEXITED(childExitMethod)) {
-				int exitStatus = WEXITSTATUS(childExitMethod);
+				exitStatus = WEXITSTATUS(childExitMethod);
 			} else {
-				int exitStatus = WTERMSIG(childExitMethod);
+				exitStatus = WTERMSIG(childExitMethod);
 			}
+			status = exitStatus;
 	}
 
 	if (redirection == 1) {
