@@ -56,7 +56,7 @@ void checkChildProcesses(void) {
 	
 	// loop through child process pids to check if finished running
 	for (i = 0; i < childProcessCount; i++) {
-		if (childProcessPids[i] != -1 && waitpid(childProcessPids[i], &childExitMethod, WNOHANG)) {
+		if (waitpid(childProcessPids[i], &childExitMethod, WNOHANG)) {
 				// if finished, set status accordingly
 				if (WIFEXITED(childExitMethod)) {
 					exitStatus = WEXITSTATUS(childExitMethod);
@@ -64,7 +64,6 @@ void checkChildProcesses(void) {
 					exitStatus = WTERMSIG(childExitMethod);
 				// print results
 				printf("background pid %d is done: ", childProcessPids[i]);
-				childProcessPids[i] = -1;
 				printStatus(exitStatus);
 				fflush(stdout);
 			}
@@ -309,7 +308,7 @@ void executeBgCommands(char** args, int argsCount) {
 		// error
 		case -1:
 			perror("Error\n");
-			exit(1);
+			status = 1;
 			break;
 
 		// child process
@@ -317,7 +316,7 @@ void executeBgCommands(char** args, int argsCount) {
 			execvp(args[0], args);
 			// return error and set value retrieved by built-in `status` command to 1
 			perror("execvp");
-			exit(1);
+			status = 1;
 			break;
 
 		default:
