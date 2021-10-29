@@ -180,8 +180,12 @@ void executeFgCommands(char**args, int argsCount) {
 		default:
 			waitpid(spawnPid, &childExitMethod, 0);
 			// print and set status accordingly
-			status = childExitMethod;
-			printStatus(status);
+			if (WIFSIGNALED(childExitMethod)) {
+				status = childExitMethod;
+				printStatus(childExitMethod);
+			} else {
+				status = childExitMethod;
+			}
 	}
 
 	if (redirection == 1) {
