@@ -51,7 +51,6 @@ void printStatus();
 // function to check status of child processes
 void checkChildProcesses(void) {
 	int childExitMethod = -5;
-	int exitStatus;
 	int i;
 	
 	// loop through child process pids to check if finished running
@@ -60,17 +59,12 @@ void checkChildProcesses(void) {
 			continue;
 		}
 		else if (waitpid(childProcessPids[i], &childExitMethod, WNOHANG)) {
-				// if finished, set status accordingly
-				if (WIFEXITED(childExitMethod)) {
-					exitStatus = WEXITSTATUS(childExitMethod);
-				} else {
-					exitStatus = WTERMSIG(childExitMethod);
 				// print results
 				printf("background pid %d is done: ", childProcessPids[i]);
-				childProcessPids[i] = -5;
-				printStatus(exitStatus);
+				printStatus(childExitMethod);
 				fflush(stdout);
-			}
+				childProcessPids[i] = -5;
+
 		}
 	}
 }
@@ -185,16 +179,9 @@ void executeFgCommands(char**args, int argsCount) {
 		// parent process
 		default:
 			waitpid(spawnPid, &childExitMethod, 0);
-			// set status accordingly
-			int exitStatus;
-			if (WIFEXITED(childExitMethod)) {
-				exitStatus = WEXITSTATUS(childExitMethod);
-				status = exitStatus;	
-			} else {
-				exitStatus = WTERMSIG(childExitMethod);
-				status = exitStatus;
-				printStatus(status);
-			}
+			// print and set status accordingly
+			status = childExitMethod;
+			printStatus(status);
 	}
 
 	if (redirection == 1) {
@@ -365,10 +352,10 @@ void changeDirectory(char *directory) {
 // function to print exit status or terminating signal
 // of the last foreground process ran by the shell
 void printStatus(int status) {
-	if (background == 1) {
-		printf("terminated by signal %d\n", status);
+	if (WIFEXITED(status)) {
+		printf("exit value %d\n", WEXITSTATUS(status));
 	} else {
-		printf("exit value %d\n", status);
+		printf("terminated by signal %d\n", WTERMSIG(status));
 	}
 	fflush(stdout);
 }
