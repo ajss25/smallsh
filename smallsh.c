@@ -15,9 +15,35 @@ int status = 0;
 int background = 0;
 int childProcessCount = 0;
 int childProcessPids[80];
+int foregroundOnlyMode = 0;
 
-// initialize empty struct for SIGINT
+// initialize empty struct for SIGINT and SIGTSTP
 struct sigaction SIGINT_action = {0};
+struct sigaction SIGTSTP_action = {0};
+
+// function to handle SIGTSTP
+void handle_SIGTSTP() {
+	// enter foreground-only mode
+	if (foregroundOnlyMode == 0) {
+		foregroundOnlyMode = 1;
+		char* enterMessage = "\nEntering foreground-only mode (& is now ignored)";
+		write(STDOUT_FILENO, enterMessage, 49);
+		fflush(stdout);
+		char* rePrompt = "\n: ";
+		write(STDOUT_FILENO, rePrompt, 3);
+		fflush(stdout);
+		return;
+	// exit foreground-only mode
+	} else {
+		foregroundOnlyMode = 0;
+		char* exitMessage = "\nExiting foreground-only mode";
+		write(STDOUT_FILENO, exitMessage, 29);
+		fflush(stdout);
+		char* rePrompt = "\n: ";
+		write(STDOUT_FILENO, rePrompt, 3);
+		fflush(stdout);
+	}
+}
 
 // declare implemented functions at the top
 void printStatus();
@@ -122,6 +148,9 @@ void executeFgCommands(char**args, int argsCount) {
 	else {
 		// set last argument to NULL for execvp()
 		args[argsCount] = NULL;
+		if (background == 1 && foregroundOnlyMode == 1) {
+			args[argsCount - 1] = NULL;
+		}
 	}
 	
 	// initialize with bogus values
@@ -420,7 +449,7 @@ int getAndParseCommand(void) {
 
 	// if we need to execute any other commands
 	} else {
-		if (background == 0) {
+		if (background == 0 || foregroundOnlyMode == 1) {
 			executeFgCommands(args, argsCount);
 		} else {
 			executeBgCommands(args, argsCount);
@@ -434,6 +463,15 @@ int main(void) {
 	SIGINT_action.sa_handler = SIG_IGN;
 	// register SIGINT_action as hanlder for SIGINT to ignore SIGINT
 	sigaction(SIGINT, &SIGINT_action, NULL);
+
+	// register handle_SGTSTP as signal hanlder for SIGTSTP_action struct
+	SIGTSTP_action.sa_handler = handle_SIGTSTP;
+	// block catchable signals
+	sigfillset(&SIGTSTP_action.sa_mask);
+	// use flag to restart after signal handler is done
+	SIGTSTP_action.sa_flags = SA_RESTART;
+	// register SIGTSTP_action as handler for SIGTSTP to handle foreground modes
+	sigaction(SIGTSTP, &SIGTSTP_action, NULL);
 
 	// prompt user for command line input until exited
 	while (1) {
