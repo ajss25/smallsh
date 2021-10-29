@@ -32,7 +32,6 @@ void handle_SIGTSTP() {
 		char* rePrompt = "\n: ";
 		write(STDOUT_FILENO, rePrompt, 3);
 		fflush(stdout);
-		return;
 	// exit foreground-only mode
 	} else {
 		foregroundOnlyMode = 0;
@@ -144,9 +143,10 @@ void executeFgCommands(char**args, int argsCount) {
 
 	else {
 		// set last argument to NULL for execvp()
-		args[argsCount] = NULL;
 		if (background == 1 && foregroundOnlyMode == 1) {
 			args[argsCount - 1] = NULL;
+		} else {
+			args[argsCount] = NULL;
 		}
 	}
 	
@@ -411,6 +411,8 @@ int getAndParseCommand(void) {
 	// check if command needs to be executed in the background
 	if (strcmp(args[argsCount - 1], "&") == 0) {
 		background = 1;
+	} else {
+		background = 0;
 	}
 
 	// re-prompt for another command if input is a comment or a blank line
