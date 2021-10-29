@@ -16,6 +16,9 @@ int background = 0;
 int childProcessCount = 0;
 int childProcessPids[80];
 
+// initialize empty struct for SIGINT
+struct sigaction SIGINT_action = {0};
+
 // declare implemented functions at the top
 void printStatus();
 
@@ -137,6 +140,10 @@ void executeFgCommands(char**args, int argsCount) {
 
 		// child process
 		case 0:
+			// for foreground processes, take default action for SIGINT
+			SIGINT_action.sa_handler = SIG_DFL;
+			sigaction(SIGINT, &SIGINT_action, NULL);
+
 			execvp(args[0], args);
 			// return error and set value retrieved by built-in `status` command to 1
 			perror("execvp");
@@ -421,6 +428,11 @@ int getAndParseCommand(void) {
 }
 
 int main(void) {
+	// register SIG_IGN as signal handler for SIGINT_action struct
+	SIGINT_action.sa_handler = SIG_IGN;
+	// register SIGINT_action as hanlder for SIGINT to ignore SIGINT
+	sigaction(SIGINT, &SIGINT_action, NULL);
+
 	// prompt user for command line input until exited
 	while (1) {
 		// check status of background child processes
