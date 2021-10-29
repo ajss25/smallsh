@@ -161,7 +161,7 @@ void executeFgCommands(char**args, int argsCount) {
 		// error
 		case -1:
 			perror("Error\n");
-			status = 1;
+			exit(1);
 			break;
 
 		// child process
@@ -173,7 +173,7 @@ void executeFgCommands(char**args, int argsCount) {
 			execvp(args[0], args);
 			// return error and set value retrieved by built-in `status` command to 1
 			perror("execvp");
-			status = 1;
+			exit(1);
 			break;
 
 		// parent process
@@ -303,7 +303,7 @@ void executeBgCommands(char** args, int argsCount) {
 		// error
 		case -1:
 			perror("Error\n");
-			status = 1;
+			exit(1);
 			break;
 
 		// child process
@@ -311,7 +311,7 @@ void executeBgCommands(char** args, int argsCount) {
 			execvp(args[0], args);
 			// return error and set value retrieved by built-in `status` command to 1
 			perror("execvp");
-			status = 1;
+			exit(1);
 			break;
 
 		default:
