@@ -157,10 +157,12 @@ void executeFgCommands(char**args, int argsCount) {
 			int exitStatus;
 			if (WIFEXITED(childExitMethod)) {
 				exitStatus = WEXITSTATUS(childExitMethod);
+				status = exitStatus;	
 			} else {
 				exitStatus = WTERMSIG(childExitMethod);
+				status = exitStatus;
+				printStatus(status);
 			}
-			status = exitStatus;
 	}
 
 	if (redirection == 1) {
