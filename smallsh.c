@@ -86,7 +86,8 @@ void executeFgCommands(char**args, int argsCount) {
 			redirection = 1;
 			sourceFD = open(args[i+1], O_RDONLY);
 			if (sourceFD == -1) {
-				perror("source open()");
+				printf("cannot open %s for input\n", args[i+1]);
+				fflush(stdout);
 				status = 1;
 				return;
 			}
@@ -95,7 +96,8 @@ void executeFgCommands(char**args, int argsCount) {
 			redirection = 1;
 			targetFD = open(args[i+1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 			if (targetFD == -1) {
-				perror("target open()");
+				printf("cannot open %s for output\n", args[i+1]);
+				fflush(stdout);
 				status = 1;
 				return;
 			}
@@ -172,7 +174,7 @@ void executeFgCommands(char**args, int argsCount) {
 
 			execvp(args[0], args);
 			// return error and set value retrieved by built-in `status` command to 1
-			perror("execvp");
+			perror(args[0]);
 			exit(1);
 			break;
 
@@ -214,7 +216,8 @@ void executeBgCommands(char** args, int argsCount) {
 			redirection = 1;
 			sourceFD = open(args[i+1], O_RDONLY);
 			if (sourceFD == -1) {
-				perror("source open()");
+				printf("cannot open %s for input\n", args[i+1]);
+				fflush(stdout);
 				status = 1;
 				return;
 			}
@@ -223,7 +226,8 @@ void executeBgCommands(char** args, int argsCount) {
 			redirection = 1;
 			targetFD = open(args[i+1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 			if (targetFD == -1) {
-				perror("target open()");
+				printf("cannot open %s for output\n", args[i+1]);
+				fflush(stdout);
 				status = 1;
 				return;
 			}
@@ -310,7 +314,7 @@ void executeBgCommands(char** args, int argsCount) {
 		case 0:
 			execvp(args[0], args);
 			// return error and set value retrieved by built-in `status` command to 1
-			perror("execvp");
+			perror(args[0]);
 			exit(1);
 			break;
 
