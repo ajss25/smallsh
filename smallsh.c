@@ -274,8 +274,8 @@ void executeBgCommands(char** args, int argsCount) {
 		}
 	}
 
-	// if redirection in command, close stdin/stdout
 	if (redirection) {
+		// if redirection in command, close stdin/stdout
 		close(0);
 		close(1);
 
@@ -501,7 +501,7 @@ int getAndParseCommand(void) {
 }
 
 /*
- * main function to register signal handles and
+ * main function to register signal handlers and
  * continuously prompt user for command until shell exits
  * reference: Exploration: Signal Handling API
  */
@@ -516,7 +516,7 @@ int main(void) {
 	// block catchable signals
 	sigfillset(&SIGTSTP_action.sa_mask);
 
-	// use flag to restart after signal handler is done and 
+	// use flag to restart after signal handler is done 
 	SIGTSTP_action.sa_flags = SA_RESTART;
 	// register SIGTSTP_action as handler for SIGTSTP to handle foreground modes
 	sigaction(SIGTSTP, &SIGTSTP_action, NULL);
