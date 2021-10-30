@@ -27,26 +27,38 @@ void handle_SIGTSTP() {
 	// enter foreground-only mode
 	if (!foregroundOnlyMode) {
 		foregroundOnlyMode = true;
+
 		char* enterMessage = "\nEntering foreground-only mode (& is now ignored)";
 		write(STDOUT_FILENO, enterMessage, 49);
 		fflush(stdout);
+
 		char* rePrompt = "\n: ";
 		write(STDOUT_FILENO, rePrompt, 3);
 		fflush(stdout);
 	// exit foreground-only mode
 	} else {
 		foregroundOnlyMode = false;
+
 		char* exitMessage = "\nExiting foreground-only mode";
 		write(STDOUT_FILENO, exitMessage, 29);
 		fflush(stdout);
+
 		char* rePrompt = "\n: ";
 		write(STDOUT_FILENO, rePrompt, 3);
 		fflush(stdout);
 	}
 }
 
-// declare implemented functions at the top
-void printStatus();
+// function to print exit status or terminating signal
+// of the last foreground process ran by the shell
+void printStatus(int status) {
+	if (WIFEXITED(status)) {
+		printf("exit value %d\n", WEXITSTATUS(status));
+	} else {
+		printf("terminated by signal %d\n", WTERMSIG(status));
+	}
+	fflush(stdout);
+}
 
 // function to check status of child processes
 void checkChildProcesses(void) {
@@ -64,7 +76,6 @@ void checkChildProcesses(void) {
 				printStatus(childExitMethod);
 				fflush(stdout);
 				childProcessPids[i] = -5;
-
 		}
 	}
 }
@@ -123,6 +134,7 @@ void executeFgCommands(char**args, int argsCount) {
 				status = 2;
 			}
 		}
+
 		// if target file descriptor was found, dup2
 		if (targetFD != -1) {
 			int targetResult = dup2(targetFD, 1);
@@ -190,7 +202,6 @@ void executeFgCommands(char**args, int argsCount) {
 				status = childExitMethod;
 			}
 	}
-
 	if (redirection == 1) {
 		dup2(saveStdin, 0);
 		dup2(saveStdout, 1);
@@ -248,6 +259,7 @@ void executeBgCommands(char** args, int argsCount) {
 		} else {
 			sourceResult = open("/dev/null", O_RDONLY);
 		}
+
 		if (sourceResult == -1) {
 			perror("source dup2()");
 			status = 2;
@@ -261,6 +273,7 @@ void executeBgCommands(char** args, int argsCount) {
 		} else {
 			targetResult = open("/dev/null", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		}
+
 		if (targetResult == -1) {
 			perror("target dup2()");
 			status = 2;
@@ -289,14 +302,12 @@ void executeBgCommands(char** args, int argsCount) {
 			perror("target dup2()");
 			status = 2;
 		}
-
 		close(sourceResult);
 		close(sourceResult);
 		
 		// replace "&" to set last argument to NULL for execvp()
 		args[argsCount - 1] = NULL;
 	}
-
 	// initialize with bogus values
 	pid_t spawnPid = -5;
 	int childExitMethod = -5;
@@ -350,23 +361,11 @@ void exitShell(void) {
 // change to home directory if not given the destination
 void changeDirectory(char *directory) {
 	int dirChanged;
-
 	if (strcmp(directory, "HOME") == 0) {
 		dirChanged = chdir(getenv("HOME"));
 	} else {
 		dirChanged = chdir(directory);
 	}
-}
-
-// function to print exit status or terminating signal
-// of the last foreground process ran by the shell
-void printStatus(int status) {
-	if (WIFEXITED(status)) {
-		printf("exit value %d\n", WEXITSTATUS(status));
-	} else {
-		printf("terminated by signal %d\n", WTERMSIG(status));
-	}
-	fflush(stdout);
 }
 
 // function to get and parse command line input from user
@@ -423,7 +422,6 @@ int getAndParseCommand(void) {
 	// re-prompt for another command if input is a comment or a blank line
 	if (args[0][0] == '#' || args[0][0] == '\n') {
 		return 0;
-
 	// if `exit` command was given, kill processes/jobs and exit the shell
 	// execute this command in foreground only
 	} else if (strcmp(args[0], "exit") == 0) {
