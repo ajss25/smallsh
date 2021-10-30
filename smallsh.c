@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <stdbool.h>
 
 // shell supports command line inputs of up to 2048 characters and 512 arguments
 #define MAX_COMMAND_LENGTH 2048
@@ -12,10 +13,10 @@
 
 // initialize global variables
 int status = 0;
-int background = 0;
+bool background = false;
 int childProcessCount = 0;
 int childProcessPids[80];
-int foregroundOnlyMode = 0;
+bool foregroundOnlyMode = false;
 
 // initialize empty struct for SIGINT and SIGTSTP
 struct sigaction SIGINT_action = {0};
@@ -24,8 +25,8 @@ struct sigaction SIGTSTP_action = {0};
 // function to handle SIGTSTP
 void handle_SIGTSTP() {
 	// enter foreground-only mode
-	if (foregroundOnlyMode == 0) {
-		foregroundOnlyMode = 1;
+	if (!foregroundOnlyMode) {
+		foregroundOnlyMode = true;
 		char* enterMessage = "\nEntering foreground-only mode (& is now ignored)";
 		write(STDOUT_FILENO, enterMessage, 49);
 		fflush(stdout);
@@ -34,7 +35,7 @@ void handle_SIGTSTP() {
 		fflush(stdout);
 	// exit foreground-only mode
 	} else {
-		foregroundOnlyMode = 0;
+		foregroundOnlyMode = false;
 		char* exitMessage = "\nExiting foreground-only mode";
 		write(STDOUT_FILENO, exitMessage, 29);
 		fflush(stdout);
@@ -145,7 +146,7 @@ void executeFgCommands(char**args, int argsCount) {
 
 	else {
 		// set last argument to NULL for execvp()
-		if (background == 1 && foregroundOnlyMode == 1) {
+		if (background && foregroundOnlyMode) {
 			args[argsCount - 1] = NULL;
 		} else {
 			args[argsCount] = NULL;
@@ -323,7 +324,7 @@ void executeBgCommands(char** args, int argsCount) {
 			printf("background pid is %d\n", spawnPid);
 			fflush(stdout);
 
-			background = 0;
+			background = false;
 			childProcessPids[childProcessCount] = spawnPid;
 			childProcessCount++;
 	}
@@ -414,9 +415,9 @@ int getAndParseCommand(void) {
 
 	// check if command needs to be executed in the background
 	if (strcmp(args[argsCount - 1], "&") == 0) {
-		background = 1;
+		background = true;
 	} else {
-		background = 0;
+		background = false;
 	}
 
 	// re-prompt for another command if input is a comment or a blank line
@@ -426,14 +427,14 @@ int getAndParseCommand(void) {
 	// if `exit` command was given, kill processes/jobs and exit the shell
 	// execute this command in foreground only
 	} else if (strcmp(args[0], "exit") == 0) {
-		background = 0;
+		background = false;
 		exitShell();
 
 	// if `cd` command was given, change the working directory
 	// if the command was not given an argument, change to home directory
 	// execute this command in foreground only
 	} else if (strcmp(args[0], "cd") == 0) {
-		background = 0;
+		background = false;
 		if (argsCount == 1 || strcmp(args[1], "&") == 0) {
 			char dir[] = "HOME";
 			changeDirectory(dir);
@@ -444,12 +445,12 @@ int getAndParseCommand(void) {
 	// if `status` command was given, print exit status or terminating signal
 	// execute this command in foreground only
 	} else if (strcmp(args[0], "status") == 0) {
-		background = 0;
+		background = false;
 		printStatus(status);
 
 	// if we need to execute any other commands
 	} else {
-		if (background == 0 || foregroundOnlyMode == 1) {
+		if (!background || foregroundOnlyMode) {
 			executeFgCommands(args, argsCount);
 		} else {
 			executeBgCommands(args, argsCount);
