@@ -16,7 +16,7 @@ Smallsh is a bash-like shell written in C, with a limited subset of features.
 ### How to Use
 
 - Compile smallsh with gcc:
-  - gcc --std=gnu99 -o smallsh smallsh.c
-  - ./smallsh
+  - `gcc --std=gnu99 -o smallsh smallsh.c`
+  - `./smallsh`
 - General syntax of a command line:
   - `command [arg1 arg2 ...] [< input_file] [> output_file] [&]`
