@@ -11,7 +11,7 @@ Smallsh is a bash-like shell written in C, with a limited subset of features.
 - Execute other commands by creating new processes
 - Supports I/O redirection
 - Supports running commands in foreground and background processes
-- Custom handlers for `SIGTINT` and `SIGTSTP` signals
+- Custom handlers for `SIGINT` and `SIGTSTP` signals
 
 ### How to Use
 
