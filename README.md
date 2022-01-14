@@ -6,11 +6,11 @@ Smallsh is a bash-like shell written in C, with a limited subset of features.
 
 - Prompt for running commands
 - Ignore blank commands and comments beginning with `#`
-- Variable expansion
+- Expansion for variable `$$` into PID of the smallsh itself
 - Implement `cd`, `exit`, and `status` commands
-- Execute other commands by creating new processes
-- Supports I/O redirection
-- Supports running commands in foreground and background processes
+- Execute other commands by creating new processes using `exec` family of functions
+- Support I/O redirection
+- Support running commands in foreground and background processes
 - Custom handlers for `SIGINT` and `SIGTSTP` signals
 
 ### How to Use
